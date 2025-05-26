@@ -41,6 +41,4 @@ jobs:
         with:
           push: true
           tags: ${{ vars.DOCKERHUB_REPO }}/${{ vars.DOCKERHUB_IMG }}:${{ env.DOCKER_TAG }}
-    runs-on:
-      - ubuntu-22.04
-      - ubuntu-latest
+    runs-on: ubuntu-latest
