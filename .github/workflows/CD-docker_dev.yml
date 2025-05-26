@@ -7,7 +7,6 @@ on:
 
 jobs:
   docker:
-    runs-on: DO
     steps:
       - name: Clear Space
         run: |
@@ -30,15 +29,11 @@ jobs:
 
       - name: Determine Docker tag
         id: docker-tag
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "DOCKER_TAG=dev" >> $GITHUB_ENV
-          else
-            echo "DOCKER_TAG=${{ github.sha }}" >> $GITHUB_ENV
-          fi
+        run: echo "DOCKER_TAG=${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: ${{ vars.DOCKERHUB_REPO }}/${{ vars.DOCKERHUB_IMG }}:${{ env.DOCKER_TAG }}
+          tags: nerdylive/sdxl-worker:${{ env.DOCKER_TAG }}
+    runs-on: ubuntu-latest
