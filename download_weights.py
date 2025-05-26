@@ -4,28 +4,14 @@ from diffusers import (
     StableDiffusionXLImg2ImgPipeline,
     AutoencoderKL,
 )
+from huggingface_hub import snapshot_download
 
 
-def fetch_pretrained_model(model_class, model_name, **kwargs):
+def get_diffusion_pipelines(cache_dir: str = "hf_cache"):
     """
-    Fetches a pretrained model from the HuggingFace model hub.
-    """
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            return model_class.from_pretrained(model_name, **kwargs)
-        except OSError as err:
-            if attempt < max_retries - 1:
-                print(
-                    f"Error encountered: {err}. Retrying attempt {attempt + 1} of {max_retries}..."
-                )
-            else:
-                raise
-
-
-def get_diffusion_pipelines():
-    """
-    Fetches the Stable Diffusion XL pipelines from the HuggingFace model hub.
+    1) Snapshot each model repo to disk (so we never stream weights directly into GPU RAM).
+    2) Load pipelines from the local folder.
+    3) Enable CPU offload so layers migrate to CUDA only when they're used.
     """
     common_args = {
         "torch_dtype": torch.float16,
@@ -33,22 +19,23 @@ def get_diffusion_pipelines():
         "use_safetensors": True,
     }
 
-    pipe = fetch_pretrained_model(
-        StableDiffusionXLPipeline,
-        "stabilityai/stable-diffusion-xl-base-1.0",
-        **common_args,
+    # 1) download/snapshot to disk
+    base_dir = snapshot_download(
+        repo_id="stabilityai/stable-diffusion-xl-base-1.0",
+        cache_dir=cache_dir,
+        resume_download=True,
     )
-    vae = fetch_pretrained_model(
-        AutoencoderKL, "madebyollin/sdxl-vae-fp16-fix", **{"torch_dtype": torch.float16}
+    vae_dir = snapshot_download(
+        repo_id="madebyollin/sdxl-vae-fp16-fix",
+        cache_dir=cache_dir,
+        resume_download=True,
     )
-    refiner = fetch_pretrained_model(
-        StableDiffusionXLImg2ImgPipeline,
-        "stabilityai/stable-diffusion-xl-refiner-1.0",
-        **common_args,
+    refiner_dir = snapshot_download(
+        repo_id="stabilityai/stable-diffusion-xl-refiner-1.0",
+        cache_dir=cache_dir,
+        resume_download=True,
     )
-
-    return pipe, refiner, vae
-
 
 if __name__ == "__main__":
     get_diffusion_pipelines()
+    print("Pipelines Downloaded")
