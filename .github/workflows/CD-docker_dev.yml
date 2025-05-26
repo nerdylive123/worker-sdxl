@@ -35,5 +35,5 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: ${{ vars.DOCKERHUB_REPO }}/${{ vars.DOCKERHUB_IMG }}:${{ env.DOCKER_TAG }}
+          tags: nerdylive/sdxl-worker:${{ env.DOCKER_TAG }}
     runs-on: ubuntu-latest
