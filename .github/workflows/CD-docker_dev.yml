@@ -7,6 +7,7 @@ on:
 
 jobs:
   docker:
+    runs-on: ubuntu-20.04
     steps:
       - name: Clear Space
         run: |
@@ -36,4 +37,3 @@ jobs:
         with:
           push: true
           tags: nerdylive/sdxl-worker:${{ env.DOCKER_TAG }}
-    runs-on: ubuntu-20.04
