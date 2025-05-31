@@ -1,5 +1,5 @@
 import torch
-from diffusers import AutoPipelineForText2Image
+from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
 from diffusers.utils import load_image
 
 from diffusers import (
@@ -18,7 +18,8 @@ def to_fp16(pipe):
 
 class ModelHandler:
     # Centralized model name
-    MODEL_NAME = "lykon/dreamshaper-xl-v2-turbo"
+    checkpoint_path = open("/model_checkpoint_path.txt").read().strip()
+    MODEL_NAME = checkpoint_path
     
     def __init__(self):
         self.base = None
@@ -27,7 +28,7 @@ class ModelHandler:
 
     def load_base(self):
         # Load Base pipeline in half precision
-        base_pipe = AutoPipelineForText2Image.from_pretrained(
+        base_pipe = StableDiffusionXLPipeline.from_single_file(
             self.MODEL_NAME,
             torch_dtype=torch.float16,
             variant="fp16",
@@ -40,7 +41,7 @@ class ModelHandler:
 
     def load_base_img2img(self):
         # Load Base img2img pipeline in half precision
-        base_img2img_pipe = AutoPipelineForText2Image.from_pretrained(
+        base_img2img_pipe = StableDiffusionXLImg2ImgPipeline.from_pretrained(
             self.MODEL_NAME,
             torch_dtype=torch.float16,
             variant="fp16",
