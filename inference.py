@@ -18,8 +18,8 @@ def to_fp16(pipe):
 
 class ModelHandler:
     # Centralized model name
-    checkpoint_path = open("/model_checkpoint_path.txt").read().strip()
-    MODEL_NAME = checkpoint_path
+    MODEL_NAME = os.environ.get("MODEL_NAME",
+                                "/hf_cache/models--Lykon--dreamshaper-xl-v2-turbo/snapshots/f70ad5bce436c640d23fc02cd0a6ccc787280b6e/DreamShaperXL_Turbo_v2_1.safetensors")
     
     def __init__(self):
         self.base = None
