@@ -2,11 +2,7 @@ import os
 import base64
 
 import torch
-from diffusers import (
-    StableDiffusionXLPipeline,
-    StableDiffusionXLImg2ImgPipeline,
-    AutoencoderKL,
-)
+from diffusers import AutoPipelineForText2Image, DPMSolverMultistepScheduler
 from diffusers.utils import load_image
 
 from diffusers import (
@@ -29,26 +25,21 @@ def to_fp16(pipe):
     """Convert all sub-modules of a Diffusers pipeline to float16."""
     pipe.unet.half()
     pipe.text_encoder.half()
-    pipe.vae.half()
     return pipe
 
 class ModelHandler:
+    # Centralized model name
+    MODEL_NAME = "lykon/dreamshaper-xl-v2-turbo"
+    
     def __init__(self):
         self.base = None
-        self.refiner = None
+        self.base_img2img = None
         self.load_models()
 
     def load_base(self):
-        # Load VAE in half precision
-        vae = AutoencoderKL.from_pretrained(
-            "madebyollin/sdxl-vae-fp16-fix",
-            torch_dtype=torch.float16,
-            local_files_only=True,
-        )
         # Load Base pipeline in half precision
-        base_pipe = StableDiffusionXLPipeline.from_pretrained(
-            "stabilityai/stable-diffusion-xl-base-1.0",
-            vae=vae,
+        base_pipe = AutoPipelineForText2Image.from_pretrained(
+            self.MODEL_NAME,
             torch_dtype=torch.float16,
             variant="fp16",
             use_safetensors=True,
@@ -58,29 +49,22 @@ class ModelHandler:
         base_pipe.enable_xformers_memory_efficient_attention()
         return to_fp16(base_pipe)
 
-    def load_refiner(self):
-        # Load VAE in half precision
-        vae = AutoencoderKL.from_pretrained(
-            "madebyollin/sdxl-vae-fp16-fix",
-            torch_dtype=torch.float16,
-            local_files_only=True,
-        )
-        # Load Refiner pipeline in half precision
-        refiner_pipe = StableDiffusionXLImg2ImgPipeline.from_pretrained(
-            "stabilityai/stable-diffusion-xl-refiner-1.0",
-            vae=vae,
+    def load_base_img2img(self):
+        # Load Base img2img pipeline in half precision
+        base_img2img_pipe = AutoPipelineForText2Image.from_pretrained(
+            self.MODEL_NAME,
             torch_dtype=torch.float16,
             variant="fp16",
             use_safetensors=True,
             add_watermarker=False,
             local_files_only=True,
         ).to("cuda")
-        refiner_pipe.enable_xformers_memory_efficient_attention()
-        return to_fp16(refiner_pipe)
+        base_img2img_pipe.enable_xformers_memory_efficient_attention()
+        return to_fp16(base_img2img_pipe)
 
     def load_models(self):
         self.base = self.load_base()
-        self.refiner = self.load_refiner()
+        self.base_img2img = self.load_base_img2img()
 
 MODELS = ModelHandler()
 
@@ -126,42 +110,32 @@ def generate_image(job):
 
     # Choose scheduler
     MODELS.base.scheduler = make_scheduler(inp["scheduler"], MODELS.base.scheduler.config)
+    if hasattr(MODELS.base_img2img, 'scheduler'):
+        MODELS.base_img2img.scheduler = make_scheduler(inp["scheduler"], MODELS.base_img2img.scheduler.config)
 
-    # If an init image is provided, run only the refiner
+    # If an init image is provided, use img2img mode
     if inp.get("image_url"):
         init_img = load_image(inp["image_url"]).convert("RGB")
-        out_images = MODELS.refiner(
+        out_images = MODELS.base_img2img(
             prompt=inp["prompt"],
-            num_inference_steps=inp["refiner_inference_steps"],
+            negative_prompt=inp["negative_prompt"],
+            num_inference_steps=inp["num_inference_steps"],
+            guidance_scale=inp["guidance_scale"],
             strength=inp["strength"],
             image=init_img,
             generator=generator,
+            num_images_per_prompt=inp["num_images"],
         ).images
         refresh = True
     else:
-        # 1) Generate float16 latents from the base pipeline
-        latents = MODELS.base(
+        # Generate images directly from the base pipeline
+        out_images = MODELS.base(
             prompt=inp["prompt"],
             negative_prompt=inp["negative_prompt"],
             height=inp["height"],
             width=inp["width"],
             num_inference_steps=inp["num_inference_steps"],
             guidance_scale=inp["guidance_scale"],
-            denoising_end=inp["high_noise_frac"],
-            output_type="latent",
-            num_images_per_prompt=inp["num_images"],
-            generator=generator,
-        ).images
-
-        # 2) Ensure latents are float16
-        latents = latents.half()
-
-        # 3) Refine those latents
-        out_images = MODELS.refiner(
-            prompt=inp["prompt"],
-            num_inference_steps=inp["refiner_inference_steps"],
-            strength=inp["strength"],
-            image=latents,
             num_images_per_prompt=inp["num_images"],
             generator=generator,
         ).images

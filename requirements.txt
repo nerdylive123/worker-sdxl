@@ -3,7 +3,7 @@ transformers
 accelerate
 safetensors
 xformers==0.0.23
-runpod==1.7.9
+runpod
 numpy==1.26.3
 scipy
 triton

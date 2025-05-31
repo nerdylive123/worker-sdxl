@@ -21,20 +21,15 @@ def get_diffusion_pipelines(cache_dir: str = "hf_cache"):
 
     # 1) download/snapshot to disk
     base_dir = snapshot_download(
-        repo_id="stabilityai/stable-diffusion-xl-base-1.0",
+        repo_id="Lykon/dreamshaper-xl-v2-turbo",
         cache_dir=cache_dir,
         resume_download=True,
     )
-    vae_dir = snapshot_download(
-        repo_id="madebyollin/sdxl-vae-fp16-fix",
-        cache_dir=cache_dir,
-        resume_download=True,
-    )
-    refiner_dir = snapshot_download(
-        repo_id="stabilityai/stable-diffusion-xl-refiner-1.0",
-        cache_dir=cache_dir,
-        resume_download=True,
-    )
+    # vae_dir = snapshot_download(
+    #     repo_id="madebyollin/sdxl-vae-fp16-fix",
+    #     cache_dir=cache_dir,
+    #     resume_download=True,
+    # )
 
 if __name__ == "__main__":
     get_diffusion_pipelines()

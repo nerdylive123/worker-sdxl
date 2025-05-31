@@ -33,11 +33,6 @@ INPUT_SCHEMA = {
         'required': False,
         'default': 25
     },
-    'refiner_inference_steps': {
-        'type': int,
-        'required': False,
-        'default': 50
-    },
     'guidance_scale': {
         'type': float,
         'required': False,
