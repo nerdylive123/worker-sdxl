@@ -34,7 +34,6 @@ class ModelHandler:
             variant="fp16",
             use_safetensors=True,
             add_watermarker=False,
-            local_files_only=True,
         ).to("cuda")
         base_pipe.enable_xformers_memory_efficient_attention()
         return to_fp16(base_pipe)

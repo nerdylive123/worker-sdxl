@@ -9,6 +9,11 @@ local_path = hf_hub_download(
     cache_dir="/hf_cache",
 )
 
+#delete if exists
+import os
+if os.path.exists('/model_checkpoint_path.txt'):
+    os.remove('/model_checkpoint_path.txt')
+
 # persist the exact checkpoint location
 with open('/model_checkpoint_path.txt', "w") as f:
     f.write(local_path)
