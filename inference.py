@@ -37,7 +37,6 @@ class ModelHandler:
             use_safetensors=True,
             add_watermarker=False,
         ).to("cuda")
-        base_pipe.enable_xformers_memory_efficient_attention()
         return to_fp16(base_pipe)
 
     def load_base_img2img(self):
@@ -50,7 +49,6 @@ class ModelHandler:
             add_watermarker=False,
             local_files_only=True,
         ).to("cuda")
-        base_img2img_pipe.enable_xformers_memory_efficient_attention()
         return to_fp16(base_img2img_pipe)
 
     def load_models(self):
