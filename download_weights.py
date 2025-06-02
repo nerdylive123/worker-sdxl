@@ -41,13 +41,7 @@ tree(cache_dir)
 parent = os.path.dirname(local_path)
 print("\nContents of parent snapshot dir:", parent)
 print(os.listdir(parent))
-# Busy‐wait for 1000 seconds
-print("\n=== BUSY‐WAITING FOR 1000s ===")
-start = time.time()
-while time.time() - start < 1000:
-    # tight loop, nothing but CPU spin
-    pass
-print("=== DONE WAITING ===")
+
 #delete if exists
 import os
 if os.path.exists('/model_checkpoint_path.txt'):
