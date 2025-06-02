@@ -27,7 +27,6 @@ RUN uv venv --python 3.11 /.venv
 # install dependencies
 RUN uv pip install torch --extra-index-url https://download.pytorch.org/whl/cu121
 
-ENV HF_HUB_ENABLE_HF_TRANSFER=1
 # install remaining dependencies from PyPI
 COPY requirements.txt /requirements.txt
 RUN uv pip install -r /requirements.txt
