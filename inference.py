@@ -1,3 +1,5 @@
+import os
+
 import torch
 from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
 from diffusers.utils import load_image
