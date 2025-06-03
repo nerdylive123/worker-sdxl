@@ -52,8 +52,18 @@ class ModelHandler:
         return to_fp16(base_img2img_pipe)
 
     def load_models(self):
-        self.base = self.load_base()
-        # self.base_img2img = self.load_base_img2img()
+        # Get environment variables to determine which models to load
+        load_txt2img = os.environ.get("LOAD_TXT2IMG", "true").lower() in ("true", "1", "yes")
+        load_img2img = os.environ.get("LOAD_IMG2IMG", "false").lower() in ("true", "1", "yes")
+
+        # Load models according to settings
+        if load_txt2img:
+            print("Loading text-to-image model...")
+            self.base = self.load_base()
+        
+        if load_img2img:
+            print("Loading image-to-image model...")
+            self.base_img2img = self.load_base_img2img()
 
 def make_scheduler(name, config):
     return {
@@ -77,9 +87,16 @@ def generate_images(model_handler, inp, generator):
     Returns:
         tuple: (generated_images, refresh_flag)
     """
-    # Choose scheduler
-    model_handler.base.scheduler = make_scheduler(inp["scheduler"], model_handler.base.scheduler.config)
-    if hasattr(model_handler.base_img2img, 'scheduler'):
+    # Check if required model is loaded
+    if inp.get("image_url") and model_handler.base_img2img is None:
+        raise ValueError("Image-to-image model not loaded but image_url was provided")
+    if not inp.get("image_url") and model_handler.base is None:
+        raise ValueError("Text-to-image model not loaded but needed for generation")
+    
+    # Choose scheduler for loaded models
+    if model_handler.base:
+        model_handler.base.scheduler = make_scheduler(inp["scheduler"], model_handler.base.scheduler.config)
+    if model_handler.base_img2img:
         model_handler.base_img2img.scheduler = make_scheduler(inp["scheduler"], model_handler.base_img2img.scheduler.config)
 
     # If an init image is provided, use img2img mode
