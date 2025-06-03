@@ -29,7 +29,6 @@ else:
 # your download call
 local_path = hf_hub_download(
     repo_id="Lykon/dreamshaper-xl-v2-turbo",
-    filename="DreamShaperXL_Turbo_v2_1.safetensors",
     cache_dir=cache_dir,
 )
 

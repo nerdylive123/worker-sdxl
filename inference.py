@@ -18,10 +18,18 @@ def to_fp16(pipe):
     pipe.text_encoder.half()
     return pipe
 
+def read_model_checkpoint_path():
+    """Read the model checkpoint path from the environment variable."""
+
+    if os.path.exists('/model_checkpoint_path.txt'):
+        with open('/model_checkpoint_path.txt', 'r') as f:
+            path = f.readline().strip()
+    return path.lower()
+
 class ModelHandler:
     # Centralized model name
     MODEL_NAME = os.environ.get("MODEL_NAME",
-                                "/hf_cache/models--Lykon--dreamshaper-xl-v2-turbo/snapshots/f70ad5bce436c640d23fc02cd0a6ccc787280b6e/DreamShaperXL_Turbo_v2_1.safetensors")
+                                f"{read_model_checkpoint_path()}/DreamShaperXL_Turbo_v2_1.safetensors")
     
     def __init__(self):
         self.base = None
@@ -47,7 +55,6 @@ class ModelHandler:
             variant="fp16",
             use_safetensors=True,
             add_watermarker=False,
-            local_files_only=True,
         ).to("cuda")
         return to_fp16(base_img2img_pipe)
 
