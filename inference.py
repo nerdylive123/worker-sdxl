@@ -53,7 +53,7 @@ class ModelHandler:
 
     def load_models(self):
         self.base = self.load_base()
-        self.base_img2img = self.load_base_img2img()
+        # self.base_img2img = self.load_base_img2img()
 
 def make_scheduler(name, config):
     return {

@@ -34,7 +34,6 @@ RUN uv pip install -r /requirements.txt
 # copy files
 COPY *.py test_input.json /
 ENV HF_HOME=/hf_cache
-ENV TRANSFORMERS_CACHE=/hf_cache
 ENV HUGGINGFACE_HUB_CACHE=/hf_cache
 ENV PYTHONUNBUFFERED=1
 # download the weights from hugging face
