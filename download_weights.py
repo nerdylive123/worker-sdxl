@@ -1,12 +1,9 @@
-from huggingface_hub import hf_hub_download
+import os
+
+from huggingface_hub import snapshot_download
 
 # download just the .safetensors file into your cache
 # download_weights.py
-
-import os
-import time
-from huggingface_hub import hf_hub_download
-import pprint
 
 cache_dir = "/hf_cache"
 
@@ -27,7 +24,7 @@ else:
     print(f"{cache_dir} does not exist yet")
 
 # your download call
-local_path = hf_hub_download(
+local_path = snapshot_download(
     repo_id="Lykon/dreamshaper-xl-v2-turbo",
     cache_dir=cache_dir,
 )
